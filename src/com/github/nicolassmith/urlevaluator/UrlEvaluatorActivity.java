@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -15,17 +16,14 @@ public class UrlEvaluatorActivity extends Activity implements
 		EvaluatorTaskCaller {
 	private static final String TAG = "UrlEvaluatorActivity";
 
-	private Toast evaluatingToast;
-	private Toast conclusionToast;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
 		// grab the URL from the intent data
 		Uri inputUri = getIntent().getData();
 
-		evaluatingToast = Toast.makeText(this, getString(R.string.evaluating, inputUri), Toast.LENGTH_LONG);
-		evaluatingToast.show();
+		updateText(inputUri.toString());
 
 		// send it to an EvaluatorTask
 		(new GeneralEvaluatorTask(this)).execute(inputUri.toString());
@@ -35,8 +33,6 @@ public class UrlEvaluatorActivity extends Activity implements
 	/** Called by the {@link EvaluatorTask} when the task is done. **/
 	@Override
 	public void onTaskCompleted(String output) {
-		evaluatingToast.cancel();
-
 		if (output == null) {
 			// nothing returned
 			makeToast(getString(R.string.couldnt_evaluate)); // couldn't evaluate
@@ -47,8 +43,15 @@ public class UrlEvaluatorActivity extends Activity implements
 		// a URL was returned
 		String toastText = getString(R.string.evaluated_as, output);
 		makeToast(toastText);
+
 		makeNewUriIntent(output);
+
 		finish();
+	}
+
+	public void updateText(String newText) {
+		TextView evaluatingUrl = (TextView) this.findViewById(R.id.evaluating_url);
+		evaluatingUrl.setText(newText);
 	}
 	
 	public void makeNewUriIntent(String uri) {
@@ -58,9 +61,9 @@ public class UrlEvaluatorActivity extends Activity implements
 	}
 
 	private void makeToast(String toastText) {
-		conclusionToast = Toast.makeText(UrlEvaluatorActivity.this, toastText, Toast.LENGTH_LONG);
+		Toast toast = Toast.makeText(UrlEvaluatorActivity.this, toastText, Toast.LENGTH_LONG);
 		// get the toast out of the way of the application select menu
-		conclusionToast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
-		conclusionToast.show();
+		toast.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
+		toast.show();
 	}
 }
